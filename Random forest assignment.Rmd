@@ -1,0 +1,794 @@
+Analysing the functions: 
+
+Explain how each function decides the value of y based on x1, x2 and x3. Do you think these data-generating mechanisms are consistent with the structure of a decision tree? Why?
+
+
+```{r}
+data.generator.1 <- function(N) { #we are making a funciton called data generator 
+  x1 <- rnorm(N,0,1) #predictor 1 #we are making a variable called x1, which is used to decide y: we are drawing the value of x from a normal distribution? 
+  x2 <- rnorm(N,0,1) #predictor 2: same as above 
+  x3 <- rnorm(N,0,1) #predictor 3 
+  
+  class <- rep(0, each=N) #outcome (to be filled below)  making a new object called class. We decide what class each i is in based on the value of x1, x2 and x3 
+  #assigns a class to each data point
+  for ( i in 1:N ) { #for every i / object in 1/N that it samples 
+    if ( x1[i] >0 ) { #if the variable of x1 of i is greater than 0
+      if (x2[i] >0 ) { #and if the variable of x2 of i is greater than 0
+        class[i] = 1 #put it in class 1 
+      }
+      else
+        class[i] = 0 #if this condition is not met, put it in class 0 
+    }
+    else #but 
+      if ( x3[i] > 0 ) { #if the value of x3 of i is greater than 0 
+        class[i] = 1 #put it in class 1 
+      }
+    else
+      class[i] = 0 #if not, put it in class 0 
+  }
+  class <- factor(class) #making an object called class where being in class 0 or 1 is a factor variable, this is y 
+  data <- data.frame(x1, x2, x3, class) #making a data frame which is made up of 4 variables, values of x1, x2 and x3, and what class you are in 
+  data
+  
+}
+```
+
+data.generator.1: 
+
+The function data.generator.1 is drawing objects from a dataset of N number of objects. For each object i in N, it then makes three continuous variables caled x1, x2 and x3. The values of x1 x2 and x3 assigned to each value of i are taken from a random sample of a normal distribution. The function then makes a second variable for each object i in N called class, which will be the y variable. It initially sets the value of class for each object i to 0. 
+
+The function then has a for loop which is used to decides whether the value of class of the data point i in N is 0 or 1, depending on the values of x1, x2 and x3. The for loop states that if the value of x1 >0, the value of x2 should be assessed. If the value of X2 > 0, class is set to 1. The 'else' part of the for loop states that if x1 is less or equal to 0, the value of x3 should be assessed. If x3 > 0, class is set to 1. If x3 is less or equal to 0, class remains at 0. 
+
+Do you think these data-generating mechanisms are consistent with the structure of a decision tree? Why?
+
+Decision trees define thresholds around observed values of variables which results in divisions of data. They use recursive binary splitting processes, meaning a series of decisions are taken around whether the values of the variables fall above or below a certain value until the end nodes of the decision are pure. This data generating mechanism is consistent with the structure of a decision tree. The function uses the value of three variables, x1, x2, and x3 and assigns the value of the categorical variable y based on the outcome of whether the values of x1, x2 and x3 fall above or below a fixed value, 0. The end result of the function is that the data is divided into fixed groups where the nodes are pure, as the value of y (class) has either been assigned to 0 or 1.
+
+Consider whether it is apporpirate to talk about binary splits, splits can be multiway? Greater or equal? 
+
+data.generator.2 
+
+```{r}
+
+data.generator.2 <- function( N ) { #making a function defining characteristics about N 
+  x1 <- rnorm(N,0,1) #predictor 1: made a variable called x1, we assign values of x1 by drawing randomly from the normal distribution 
+  x2 <- rnorm(N,0,1) #predictor 2
+  x3 <- rnorm(N,0,1) #predictor 3 
+  class <- rep(0, each=N) #outcome (to be fulfilled below): we have made the variable class, right now every data point i in N is class 0 but the true outcome of class is decided by the outcome of the foor loop below: 
+  #assigns a class to each data point 
+  for ( i in 1:N ) { #for every data point i in N 
+    if ( x1[i] >0 ) { #if x1 value is greater than 0
+      if ( x3[i] > 0 ) { #then assess the value of x3. If x3 > 0, it is class 1 
+        class[i] = 1
+      }
+      else
+        class[i] = 0 #if this condition is not fulfilled, so if value of x1 is not greater than 0 or if the value of x3 is not greater than 0, put it in class 0.
+    }
+    else
+      class[i] = 0 #if none of these conditions are met, put it in class 0 
+  }
+  class <- factor(class)
+  data <- data.frame(x1, x2, x3, class)
+  data
+}
+
+```
+
+Explain how each function decides the value of y based on x1, x2 and x3.
+
+In the same way as the function data.generator.1, data.generator.2 draws objects from a dataset of N number of objects. For each object i in N, it then makes three continuous variables caled x1, x2 and x3. The values of x1 x2 and x3 assigned to each value of i are taken from a random sample of a normal distribution. The function then makes a second variable for each object i in N called class, which will be the y variable. It initially sets the value of class for each object i to 0. 
+
+The function then has a for loop which is used to decides whether the value of class of the data point i in N is 0 or 1, depending on the values of x1 and x3. The for loop states that for each data point in N, if the value of x1 is greater than 0, the value of x3 should be assessed. If the value of x3 is greater than 0, class should be assigned as 1. If the value of x1 or x3 is less than 0, class should be assigned as 0. If a condition other than these outcomes is met (such as any value of x2), class should still be assigned as 0. 
+
+Do you think these data-generating mechanisms are consistent with the structure of a decision tree? Why? 
+
+Yes this data generating mechanism is consistent with the structure of a decision tree. Although it only uses information about two out of three of the variables, x1 and x3, the tree still uses a recursive binary splitting process. This means that a series of decisions is taken based on whether the values of x1 and x3 fall above or below a certain value, 0, until the data are divided into fixed groups where the end nodes of the decision tree are pure. This means that the outcome of the decision tree is binary; any data point i in N is either in class 1 or class 0. Using some but not all of the possible variables to decide the final outcome in a decision tree is common practice in Random Forest. Random forest uses many decision trees on the same set of data which use different variables in order to avoid overfitting. 
+
+
+Question 2: 
+
+```{r}
+#Loading the required packages: 
+#install.packages("cowplot")
+#install.packages("randomForest")
+#install.packages("pROC")
+#install.packages("reprtree")
+#(later on make an if loop which installs the packages if they are not installed)
+library(tidyverse)
+library(cowplot)
+library(randomForest)
+library(pROC)
+library(reprtree)
+
+#The package __reprtree__ can be installed with the following instructions.
+
+#install.packages("devtools")
+#devtools::install_github('araastat/reprtree')
+
+```
+
+```{r}
+# Generate 200 data points
+dataset_question_2 <- data.generator.1(200)
+
+# View the first few rows of the generated data
+head(dataset_question_2)
+
+
+```
+
+Running a random forest model to predict y given the values of x1, x2 and x3. We are feeding the data and the outcomes to our model so that our model learns how to predict the outcomes from new data based on this. 
+
+```{r}
+
+##make sure that the variable we are predicting is a factor
+##which tells the software we are doing a classification exercise
+#we need to make sure the native speaker column is a factor variable! Converting it to a factor variable which is important otherwise random forest wont work 
+dataset_question_2$class<- factor(dataset_question_2$class)
+
+rf <- randomForest(class ~ ., data = dataset_question_2)
+rf
+
+```
+Exploring random forest parameters: 
+
+
+
+```{r}
+
+##force a large number of trees
+rf <- randomForest(class ~ ., data = dataset_question_2, ntree=1000)
+
+##this is how the OOB error rates are extracted from the solution within "rf"
+head(rf$err.rate)
+```
+
+The output __rf$err.rate__ provides an estimate of the error for the entire dataset (OOB, column 1), and the two available values of the variable being predicted, in this case __no__ (column 2) and __yes__ (column 3). The rows in this data.frame show how the errors change as the number of trees considered increases, from 1 (row 1) to ntree (last row). We can plot the OOB:
+
+```{r echo=TRUE, include=TRUE}
+
+plot(rf$err.rate[,1], t='l')
+
+```
+The out of bag error has already plateaued once ntree = 500 so 500, the default number of trees, is an appropriate number of trees for the random forest. 
+
+```{r}
+rf <- randomForest(class ~ ., data = dataset_question_2, ntree=500)
+
+```
+## A few quantifications of predictive power
+
+In many occasions we would want to be able to summarize how well a random forest works in light of the data presented to it. In the sections above we looked at the OOB error, but there are 3 other commonly used measures - overall __accuracy__, __sensitivity__ (true positive rate) and __specificity__ (true negative rate).
+
+Reporting sensitivity, specificity and accuracy: 
+
+We use the confusion matrix to calculate the measures of predictive power.
+
+```{r echo=TRUE, include=TRUE}
+
+#extract confusion matrix
+m<- rf$confusion
+#remove the last column which is the error.class.  ?
+m<- m[,-ncol(m)]
+m
+
+```
+
+The overall __accuracy__ (ACC, as introduced in the lecture slides) is the number of correctly predicted entries divided by the sum of all entries.
+
+```{r}
+
+##calc accuracy (prop correctly classified)
+ACC<- (m[1,1] + m[2,2])/sum(m)
+ACC
+
+```
+The accuracy is 0.99 which is very high 
+
+Calculating sensitivity / true positive rate. 
+True positive rate is caluclated by the number of correctly predicted entires for 1 divided by the sum of all entries that are actually 1 / it is the proporiton of the units with a known positive condition for which the condition is actually positive. 
+
+```{r}
+##calc sensitity (True Positive Rate)
+TPR<- (m[2,2])/sum(m[2,])
+TPR
+
+```
+The true positive rate is 99% which is very high 
+
+Calculating specificity: 
+
+The __true negative rate__ (TNR, as introduced in the lecture slides) is the number of correctly predicted entires for __no__ divided by the sum of all entries that are actually __no__.
+In our case the true negative rate is calculated by the number of correctly predicted entries for 0 divided by the sum of all entries that are actually 0 
+
+```{r}
+##calc specificity (True Negative Rate)
+TNR<- (m[1,1])/sum(m[1,])
+TNR
+
+```
+The true negative rate is 99%. 
+
+Repeating the same analysis using 200 data points from data.generator.2: 
+
+```{r}
+# Generate 200 data points
+dataset2_question_2 <- data.generator.2(200)
+
+# View the first few rows of the generated data
+head(dataset2_question_2)
+
+```
+
+Running a random forest on this data: 
+
+```{r}
+
+##make sure that the variable we are predicting is a factor
+##which tells the software we are doing a classification exercise
+#we need to make sure the native speaker column is a factor variable! Converting it to a factor variable which is important otherwise random forest wont work 
+dataset2_question_2$class<- factor(dataset2_question_2$class)
+
+rf <- randomForest(class ~ ., data = dataset2_question_2)
+rf
+
+```
+
+Exploring random forest parameters: 
+
+
+
+```{r}
+
+##force a large number of trees
+rf <- randomForest(class ~ ., data = dataset2_question_2, ntree=1000)
+
+##this is how the OOB error rates are extracted from the solution within "rf"
+head(rf$err.rate)
+
+```
+Plotting the out of bag error rate for this larger number of trees: 
+
+```{r}
+plot(rf$err.rate[,1], t='l')
+
+```
+
+The out of bag error rate has plateaud once 500 trees have been used, so 500 is also an appropriate number of trees to use for this model. However the error rate for this random forest is higher than the error rate from the random forest generated from the first dataset, even for a very large number of trees
+
+Put the number of trees back to 500: 
+
+```{r}
+rf <- randomForest(class ~ ., data = dataset2_question_2, ntree=500)
+
+```
+
+Calculating sensitivity, specificity and accuracy
+
+First we need to extract the confusion matrix from this Random Forest model: 
+
+```{r}
+#extract confusion matrix
+m<- rf$confusion
+#remove the last column which is the error.class.  ?
+m<- m[,-ncol(m)]
+m
+
+```
+
+Calculating accuracy: 
+
+The overall __accuracy__ (ACC, as introduced in the lecture slides) is the number of correctly predicted entries divided by the sum of all entries.
+
+```{r}
+
+##calc accuracy (prop correctly classified)
+ACC<- (m[1,1] + m[2,2])/sum(m)
+ACC
+
+```
+
+The accuracy is 99% 
+
+Calculating sensitivity / True positive rate: 
+
+True positive rate is caluclated by the number of correctly predicted entires for 1 divided by the sum of all entries that are actually 1 / it is the proporiton of the units with a known positive condition for which the condition is actually positive. 
+
+```{r}
+##calc sensitity (True Positive Rate)
+TPR<- (m[2,2])/sum(m[2,])
+TPR
+
+```
+
+The true positive rate is 95%, which is slightly lower than the true positive rate in the alternative dataset generated by data.generator.1 
+
+Calculating specificity / true negative rate. 
+
+The __true negative rate__ (TNR, as introduced in the lecture slides) is the number of correctly predicted entires for __no__ divided by the sum of all entries that are actually __no__.
+In our case the true negative rate is calculated by the number of correctly predicted entries for 0 divided by the sum of all entries that are actually 0 
+
+```{r}
+##calc specificity (True Negative Rate)
+TNR<- (m[1,1])/sum(m[1,])
+TNR
+```
+
+The true negative rate is 100%. This is higher than that of the dataset generated by data.generator.1.
+
+
+
+Do you note any differences across datasets? Are these results expected based on your answer to Exercise 1?
+
+The true positive rate for data.generator.2 is lower than for data.generator.1. Accuracy is the same, and the true negative rate is higher for data.generator.2 than for data.generator.1. 
+
+Data.generator.1 is more likely to ahve a higher true positive rate as it uses all the variables, x1, x2 and x3 in order to classify objects into class 1 or class 0. It checks for three conditions, x1>0, and x2>0, and if these criteria are not met, if x3>0, class is also set to 1. It is therefore more likely to correclty identify positive instances leading to a higher true positive rate. Data.generator.2 assigns class label only if x1 and x3 are greater than 0 and does not take into account the value of x2. It is therefore more restrictive in identifying positive instances leading to a lower TPR as it potentially misses some true positive instances that data.generator.1 might have captured. However this leads to a higher true negative rate of data.generator.2 as it is less likely to misclassify an actual negative as a positive due to its stricter cireria for assigning positive labels. 
+
+
+Question 3: 
+
+```{r}
+#in the future need to make an if loop for this function 
+#install.packages("palmerpenguins")
+
+library(palmerpenguins)
+data("penguins")
+head(penguins)
+
+```
+
+```{r}
+#saving the raw data before I clean it 
+
+write.csv(penguins, "data/penguins.raw.csv")
+
+#Loading the data from the saved version: 
+
+penguins.raw <- read.csv("data/penguins.raw.csv")
+
+```
+
+Cleaning the data: I want to remove the variables sex and year, and remove NAs. 
+
+```{r}
+library(dplyr)
+library(tidyr)
+#This needs to live in a separate folder called functions
+clean_penguins <- function() {
+  penguins.raw %>%
+    drop_na()  # Removes rows with NA values
+}
+
+#this function takes the raw data and removes NA values and converts all the variables into factors 
+
+#Using this function to clean my data 
+
+penguins_cleaned <- clean_penguins()
+write.csv(penguins_cleaned, "data/penguins_cleaned.csv")
+
+
+
+#Making a function that subsets the data, removing variables that are irrelevent to us such as sex, year and island. 
+#Could replace this with the code from the session, is it quicker? 
+
+subset_columns <- function(data, column_names) {
+  data %>%
+    select(all_of(column_names))
+}
+
+#Using this function to remove variables sex, year and island from penguins_clean 
+
+
+# Remove the variables sex, year, and island, and keep all other variables
+penguins_selected_variables <- subset_columns(penguins_cleaned, c("species", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"))
+
+head(penguins_selected_variables)
+
+#do i need to write a csv for this? 
+
+```
+
+Creating histograms for each variable, stratifying by species. Each figure should contain 3 histograms, one per species 
+
+NOTE THAT BEFORE WE RUN THE RANDOM FOREST WE NEED TO CONVERT THE VARIABLES TO FACTORS BUT THIS WONT WORK FOR THE HISTOGRAMS 
+```{r}
+#Loading the required package 
+library(ggplot2)
+
+# Create histograms stratified by species for bill length
+ggplot(penguins_selected_variables, aes(x = bill_length_mm, fill = species)) +
+  geom_histogram(bins = 30, color = "black", alpha = 0.6) +
+  facet_wrap(~species, scales = "free") +
+  labs(title = "Distribution of Bill Length by Species",
+       x = "Bill Length (mm)", y = "Frequency") +
+  theme_minimal()
+
+```
+Creating another set of histograms, this time for bill depth. 
+
+```{r}
+ggplot(penguins_selected_variables, aes(x = bill_depth_mm, fill = species)) +
+  geom_histogram(bins = 30, color = "black", alpha = 0.6) +
+  facet_wrap(~species, scales = "free") +
+  labs(title = "Distribution of Bill Depth by Species",
+       x = "Bill Depth (mm)", y = "Frequency") +
+  theme_minimal()
+
+```
+Creating histograms for flipper length: 
+
+```{r}
+ggplot(penguins_selected_variables, aes(x = flipper_length_mm, fill = species)) +
+  geom_histogram(bins = 30, color = "black", alpha = 0.6) +
+  facet_wrap(~species, scales = "free") +
+  labs(title = "Distribution of Flipper length by Species",
+       x = "Flipper length (mm)", y = "Frequency") +
+  theme_minimal()
+
+```
+Creating another set of histograms for body mass 
+
+```{r}
+ggplot(penguins_selected_variables, aes(x = body_mass_g, fill = species)) +
+  geom_histogram(bins = 30, color = "black", alpha = 0.6) +
+  facet_wrap(~species, scales = "free") +
+  labs(title = "Distribution of Body mass by Species",
+       x = "Body mass (g)", y = "Frequency") +
+  theme_minimal()
+```
+
+Run a random forest on this data set, calibrate it by setting appropriate values: what is the random forest actually trying to find? We are trying to predict species solely based on the penguins physical attributes 
+
+
+
+```{r}
+#We need to ensure the species column is a factor variable: 
+
+penguins_selected_variables$species<- factor(penguins_selected_variables$species)
+
+rf <- randomForest(species ~ ., data = penguins_selected_variables)
+rf
+
+```
+Finding the value of ntree that is appropriate: 
+
+```{r}
+##force a large number of trees
+rf <- randomForest(species ~ ., data = penguins_selected_variables, ntree=1000)
+##this is how the OOB error rates are extracted from the solution within "rf"
+head(rf$err.rate)
+```
+Plotting the OOB error rate against number of trees: 
+
+```{r}
+plot(rf$err.rate[,1], t='l')
+
+```
+The error rate is large for a single tree but plateaus as the number of trees increases. The error rate had already plateaud once 500 trees are reached therefore 500 is an appropriate number of trees to use, when mtree is the default. ]
+
+Checking the effect of different mtree values: 
+
+```{r}
+mtry_values<- c(1,2,3,4) ##there are only 4 variables
+ntree<- 1000 ##set to large
+OOB_results<- c()
+for(mt in mtry_values){
+  rf <- randomForest(species ~ ., data = penguins_selected_variables, ntree=ntree, mtry=mt)
+  ##OOB only
+  newOOB<- rf$err.rate[,1] 
+  ##save each OOB solution by row on a data.frame
+  OOB_results<- rbind(OOB_results,newOOB)
+}
+#what is mt?
+plot(OOB_results[1,], t='l', col=1, ylim=c(0,0.1))
+for(mt in 2:length(mtry_values)){
+  lines(OOB_results[mt,], col=mt)
+}
+legend("topright",legend=mtry_values,col =1:length(mtry_values) ,lty=1)
+
+```
+
+Get help with this! 
+The OOB error is noisy and varies between runs but its variation is small. The out of bound error for a small value of mtree is large. The effect is visible but the OOB error plateaus once a value of 500 (the default) is reached. So for this dataset the default parameters of both ntree and mtree are ok to be used. 
+
+```{r}
+#rerunning the rf model with the default parameters 
+rf <- randomForest(species ~ ., data = penguins_selected_variables)
+rf
+
+```
+Finding the most important variables: 
+
+## Variable (feature) importance
+
+The random forest will quantify how important each variable (also commonly termed __feature_"__) was for the prediction. We can extract and plot this information from the forest.
+
+```{r echo=TRUE, include=TRUE, fig.width=10, fig.height=4}
+  
+imp<- importance(rf) ##extracts a matrix with the importance information
+print(imp)
+
+varImpPlot(rf) ##plots the importance information
+
+```
+
+Bill length has the highest importance in predicting penguin species since it has the highest value for Mean decreae in Gini index. This is followed by flipper length, bill depth and body mass. 
+
+Extracting the confusion matrix: 
+
+```{r}
+#extract confusion matrix
+m<- rf$confusion
+#remove the last column which is the error.class.  
+m<- m[,-ncol(m)]
+m
+
+
+```
+Calculating accuracy, sensitivity and specificity for each penguin species 
+
+Adelie: 
+
+Sensitivity / True positive rate 
+```{r}
+##calc sensitity (True Positive Rate)
+TPR<- (m[1,1])/sum(m[1,])
+TPR
+
+```
+  
+Specificity / true negative 
+
+```{r}
+##calc specificity (True Negative Rate)
+# Assuming 'm' is your confusion matrix
+
+TNR <- (m[2, 2] + m[3, 3] + m[2, 3]) / (m[2, 2] + m[3, 3] + m[1, 2] + m[2, 3])
+TNR
+
+
+```
+
+
+
+
+
+Chinstrap: 
+Sensitivity / True positive rate 
+
+```{r}
+##calc sensitity (True Positive Rate)
+TPR<- (m[2,2])/sum(m[2,])
+TPR
+
+```
+
+Specificity / true negative rate 
+
+```{r}
+TNR <- (m[1, 1] + m[3, 3] + m[3, 1]) / (m[1, 1] + m[3, 3] + m[2, 1] + m[3, 1] + (m[3, 2]))
+TNR
+
+```
+
+```{r}
+
+#alternative way of calclating this: 
+
+TNR <- (m[1, 1] + m[3, 3] + m[3, 1]) / (sum(m[1,] + sum(m[3,])))
+TNR
+
+```
+
+Gentoo: 
+Calculating True positive / Sensitivity 
+
+```{r}
+##calc sensitity (True Positive Rate)
+TPR<- (m[3,3])/sum(m[3,])
+TPR
+
+```
+
+Calculating true negative / specificity 
+
+```{r}
+TNR <- (m[1, 1] + m[2, 2] + m[1, 2]) + (m[2, 1]) / (sum(m[2,] + sum(m[1])))
+TNR
+
+
+```
+
+sum(m[2,]
+
+```{r}
+# Now, you can count the total number of Chinstrap, Gentoo, and Adelie penguins
+total_chinstrap <- sum(penguins_selected_variables$species == "Chinstrap")
+total_gentoo <- sum(penguins_selected_variables$species == "Gentoo")
+total_adelie <- sum(penguins_selected_variables$species == "Adelie")
+
+# Print the total number of Chinstrap, Gentoo, and Adelie penguins
+print(paste("Total Chinstrap Penguins:", total_chinstrap))
+print(paste("Total Gentoo Penguins:", total_gentoo))
+print(paste("Total Adelie Penguins:", total_adelie))
+
+
+
+
+```
+
+
+Moving on to question 4: 
+
+data.generator.1 <- function(N) { #we are making a funciton called data generator 
+  x1 <- rnorm(N,0,1) #predictor 1 #we are making a variable called x1, which is used to decide y: we are drawing the value of x from a normal distribution? 
+  x2 <- rnorm(N,0,1) #predictor 2: same as above 
+  x3 <- rnorm(N,0,1) #predictor 3 
+  
+```{r}
+data.generator.3 <- function
+
+```
+  
+  
+
+```{r}
+
+
+# Function to generate random datasets with three predictors
+data.generator.3 <- function(N) {
+  # Generate random predictors
+  x1 <- rnorm(N, 0, 1)
+  x2 <- rnorm(N, 0, 1)
+  x3 <- rnorm(N, 0, 1)
+  
+  # Create data frame with predictors
+  data <- data.frame(x1, x2, x3)
+  
+  return(data)
+}
+
+# Load the cleaned penguins dataset
+data("penguins_selected_variables")
+# Assuming 'penguins' is the cleaned dataset
+
+# Define the sample sizes
+sample_sizes <- c(0, 1, 5, 10, 20, 50, 75, 100)
+
+#Define the number of repetitions 
+M <- 50
+
+# Set the seed for reproducibility
+set.seed(123)
+
+# Loop through each sample size
+for (n in sample_sizes) {
+  # Generate random noise arrays
+  random_noise <- data.generator.3(nrow(penguins_selected_variables))
+  
+  # Append noise columns to the original dataset
+  augmented_dataset <- cbind(penguins_selected_variables, random_noise)
+  
+  # Run random forest algorithm on the augmented dataset
+  rf_model <- randomForest(species ~ ., data = augmented_dataset, ntree = 2000)
+  
+  # Analyze or store the results as needed
+  # For demonstration purposes, let's print out the OOB error rate
+  print(paste("Sample Size:", n))
+  print(paste("OOB Error Rate:", rf_model$err.rate[nrow(rf_model), "OOB"]))
+  
+
+
+}
+
+
+  
+```
+
+
+We want to find accuracy so need to extract the confusion matrix: 
+
+```{r}
+
+#extract confusion matrix
+m<- rf_model$confusion
+#remove the last column which is the error.class.  ?
+m<- m[,-ncol(m)]
+m
+
+
+```
+Calculate the accuracy of this random forest: 
+
+The overall __accuracy__ (ACC, as introduced in the lecture slides) is the number of correctly predicted entires divided by the sum of all entries.
+
+```{r}
+##calc accuracy (prop correctly classified)
+ACC<- (m[1,1] + m[2,2] + m[3,3])/sum(m)
+#Store the accuracy for this repetition 
+
+```
+
+```{r}
+# Load necessary libraries
+library(palmerpenguins)
+library(randomForest)
+library(ggplot2)
+
+# Function to generate random datasets with three predictors
+data.generator.3 <- function(N) {
+  # Generate random predictors
+  x1 <- rnorm(N, 0, 1)
+  x2 <- rnorm(N, 0, 1)
+  x3 <- rnorm(N, 0, 1)
+  
+  # Create data frame with predictors
+  data <- data.frame(x1, x2, x3)
+  
+  return(data)
+}
+
+# Load the cleaned penguins dataset
+data("penguins_selected_variables")
+# Assuming 'penguins' is the cleaned dataset
+
+# Define the sample sizes
+sample_sizes <- c(0, 1, 5, 10, 20, 50, 75, 100)
+
+# Define the number of repetitions
+M <- 50
+
+# Set the seed for reproducibility
+set.seed(123)
+
+# Initialize a vector to store mean accuracies for each sample size
+mean_accuracies <- numeric(length(sample_sizes))
+
+# Loop through each sample size
+for (n_idx in seq_along(sample_sizes)) {
+  n <- sample_sizes[n_idx]
+  
+  # Initialize a vector to store accuracies for this sample size
+  accuracies <- numeric(M)
+  
+  # Repeat the experiment M times
+  for (i in 1:M) {
+    # Generate random noise arrays
+    random_noise <- data.generator.3(nrow(penguins_selected_variables))
+    
+    # Append noise columns to the original dataset
+    augmented_dataset <- cbind(penguins_selected_variables, random_noise)
+    
+    # Run random forest algorithm on the augmented dataset
+    rf_model <- randomForest(species ~ ., data = augmented_dataset)
+    
+    # Get confusion matrix
+    #extract confusion matrix
+m<- rf_model$confusion
+#remove the last column which is the error.class.  ?
+m<- m[,-ncol(m)]
+m
+    
+    # Calculate accuracy
+    ACC<- (m[1,1] + m[2,2] + m[3,3])/sum(m)
+    
+    # Store the accuracy for this repetition
+    accuracies[i] <- ACC
+  }
+  
+  # Calculate and store the mean accuracy for this sample size
+  mean_accuracies[n_idx] <- mean(accuracies)
+}
+
+# Create a data frame for plotting
+plot_data <- data.frame(N = sample_sizes, Mean_Accuracy = mean_accuracies)
+
+# Plot mean accuracy as a function of n
+ggplot(plot_data, aes(x = N, y = Mean_Accuracy)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "n", y = "Mean Accuracy", title = "Mean Accuracy vs. Sample Size (n)")
+
+
+
+```
+NEED TO GO OVER ALL OF THE ABOVE, COULD ALL BE WRONG. 
