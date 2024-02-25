@@ -377,7 +377,6 @@ subset_columns <- function(data, column_names) {
 
 #Using this function to remove variables sex, year and island from penguins_clean 
 
-
 # Remove the variables sex, year, and island, and keep all other variables
 penguins_selected_variables <- subset_columns(penguins_cleaned, c("species", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"))
 
@@ -444,7 +443,7 @@ Run a random forest on this data set, calibrate it by setting appropriate values
 #We need to ensure the species column is a factor variable: 
 
 penguins_selected_variables$species<- factor(penguins_selected_variables$species)
-
+#Running a random forest on my data set 
 rf <- randomForest(species ~ ., data = penguins_selected_variables)
 rf
 
@@ -528,7 +527,7 @@ Calculating accuracy, sensitivity and specificity for each penguin species
 
 Adelie: 
 
-Sensitivity / True positive rate 
+Sensitivity / True positive rate: the number of predicted positives divided by how many there actually are 
 ```{r}
 ##calc sensitity (True Positive Rate)
 TPR<- (m[1,1])/sum(m[1,])
@@ -538,18 +537,23 @@ TPR
   
 Specificity / true negative 
 
-```{r}
-##calc specificity (True Negative Rate)
-# Assuming 'm' is your confusion matrix
 
-TNR <- (m[2, 2] + m[3, 3] + m[2, 3]) / (m[2, 2] + m[3, 3] + m[1, 2] + m[2, 3])
+
+```{r}
+TNR <- (sum(m[,2]) + (sum(m[,3]))) / (sum(m[2,]) + sum(m[3,]))
 TNR
+```
+
+Accuracy:
+Calculating accuracy for each species 
+ = number of correct predictions for that species / total number of predictions for that species 
+ 
+```{r}
+ACC <- (m[1,1]) / sum(m[,1])
+ACC
 
 
 ```
-
-
-
 
 
 Chinstrap: 
@@ -565,19 +569,20 @@ TPR
 Specificity / true negative rate 
 
 ```{r}
-TNR <- (m[1, 1] + m[3, 3] + m[3, 1]) / (m[1, 1] + m[3, 3] + m[2, 1] + m[3, 1] + (m[3, 2]))
+TNR <- ((sum(m[,1]) + sum(m[,3]))) / (sum(m[1,]) + sum(m[3,]))
 TNR
 
 ```
 
+Accuracy 
+ = number of correct predictions for that species / total number of predictions for that species 
+ 
 ```{r}
-
-#alternative way of calclating this: 
-
-TNR <- (m[1, 1] + m[3, 3] + m[3, 1]) / (sum(m[1,] + sum(m[3,])))
-TNR
+ACC <- (m[2,2]) / sum(m[,2])
+ACC
 
 ```
+
 
 Gentoo: 
 Calculating True positive / Sensitivity 
@@ -592,121 +597,89 @@ TPR
 Calculating true negative / specificity 
 
 ```{r}
-TNR <- (m[1, 1] + m[2, 2] + m[1, 2]) + (m[2, 1]) / (sum(m[2,] + sum(m[1])))
+TNR <- ((sum(m[,1]) + sum(m[,2])) / (sum(m[2,]) + sum(m[1,])))
 TNR
 
 
 ```
 
-sum(m[2,]
+Calculating accuracy 
+```{r}
+ACC <- (m[3,3]) / sum(m[,3])
+ACC
+```
+
+Analysis: 
+
+Are all species classified equally well? 
+No, true positive, true negative rate and accuracy rates vary between species.
+Chinstrap species are classified less accurately than Adelie. Adelie has a higher sensitivity, specificity and accuracy rate than chinstrap. Gentoo has the highest true negative and accuracy, and the highest true positive rate, so Gentoo are most accurately calssified. 
+
+
+
+
+Bill length has the highest importance in predicting penguin species since it has the highest value for Mean decrease in Gini index. This is followed by flipper length, bill depth and body mass. 
+
+
 
 ```{r}
-# Now, you can count the total number of Chinstrap, Gentoo, and Adelie penguins
-total_chinstrap <- sum(penguins_selected_variables$species == "Chinstrap")
-total_gentoo <- sum(penguins_selected_variables$species == "Gentoo")
-total_adelie <- sum(penguins_selected_variables$species == "Adelie")
-
-# Print the total number of Chinstrap, Gentoo, and Adelie penguins
-print(paste("Total Chinstrap Penguins:", total_chinstrap))
-print(paste("Total Gentoo Penguins:", total_gentoo))
-print(paste("Total Adelie Penguins:", total_adelie))
-
-
-
+#Plotting Bill length against body mass 
+library(ggplot2)
+# Scatter plot of bill length against body mass
+ggplot(penguins_selected_variables, aes(x = bill_length_mm, y = body_mass_g, color = species)) +
+  geom_point() +
+  labs(x = "Bill Length (mm)", y = "Body Mass (g)") +
+  ggtitle("Scatter Plot of Bill Length vs. Body Mass")
 
 ```
 
 
-Moving on to question 4: 
+Do these plots also help explain why some variables may be more important than others for classification?
 
-data.generator.1 <- function(N) { #we are making a funciton called data generator 
-  x1 <- rnorm(N,0,1) #predictor 1 #we are making a variable called x1, which is used to decide y: we are drawing the value of x from a normal distribution? 
-  x2 <- rnorm(N,0,1) #predictor 2: same as above 
-  x3 <- rnorm(N,0,1) #predictor 3 
-  
-```{r}
-data.generator.3 <- function
+This scatter plot shows how body mass of a species changes as bill length changes. The adelie, chinstrap and gentoo species cluster separately, showing clear boundaries in feature space, because bill length is an important feature in predicting species. 
 
-```
-  
-  
 
 ```{r}
+# Scatter plot of body mass against flipper length 
+ggplot(penguins_selected_variables, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point() +
+  labs(x = "Flipper length (mm)", y = "Body Mass (g)") +
+  ggtitle("Scatter Plot of Flipper length vs. Body Mass")
 
-
-# Function to generate random datasets with three predictors
-data.generator.3 <- function(N) {
-  # Generate random predictors
-  x1 <- rnorm(N, 0, 1)
-  x2 <- rnorm(N, 0, 1)
-  x3 <- rnorm(N, 0, 1)
-  
-  # Create data frame with predictors
-  data <- data.frame(x1, x2, x3)
-  
-  return(data)
-}
-
-# Load the cleaned penguins dataset
-data("penguins_selected_variables")
-# Assuming 'penguins' is the cleaned dataset
-
-# Define the sample sizes
-sample_sizes <- c(0, 1, 5, 10, 20, 50, 75, 100)
-
-#Define the number of repetitions 
-M <- 50
-
-# Set the seed for reproducibility
-set.seed(123)
-
-# Loop through each sample size
-for (n in sample_sizes) {
-  # Generate random noise arrays
-  random_noise <- data.generator.3(nrow(penguins_selected_variables))
-  
-  # Append noise columns to the original dataset
-  augmented_dataset <- cbind(penguins_selected_variables, random_noise)
-  
-  # Run random forest algorithm on the augmented dataset
-  rf_model <- randomForest(species ~ ., data = augmented_dataset, ntree = 2000)
-  
-  # Analyze or store the results as needed
-  # For demonstration purposes, let's print out the OOB error rate
-  print(paste("Sample Size:", n))
-  print(paste("OOB Error Rate:", rf_model$err.rate[nrow(rf_model), "OOB"]))
-  
-
-
-}
-
-
-  
 ```
-
-
-We want to find accuracy so need to extract the confusion matrix: 
+This scatter plot shows how body mass varies with increasing flipper length. Although gentoo species still cluster separetely, Adelie and chinstrap cluster together because flipper length is a less important variable in differentiating between these two species.
 
 ```{r}
-
-#extract confusion matrix
-m<- rf_model$confusion
-#remove the last column which is the error.class.  ?
-m<- m[,-ncol(m)]
-m
-
+# Scatter plot of body mass against bill depth
+ggplot(penguins_selected_variables, aes(x = bill_depth_mm, y = body_mass_g, color = species)) +
+  geom_point() +
+  labs(x = "Bill depth (mm)", y = "Body Mass (g)") +
+  ggtitle("Scatter Plot of Bill depth vs. Body Mass")
 
 ```
-Calculate the accuracy of this random forest: 
+Bill length is therefore the most important variable in predicting penguin species because it is the only variable for which there si a clear boundary between adelie and chinstrap in feature space. 
 
-The overall __accuracy__ (ACC, as introduced in the lecture slides) is the number of correctly predicted entires divided by the sum of all entries.
+What if I plot bill length against a more important feature, against flipper length 
 
 ```{r}
-##calc accuracy (prop correctly classified)
-ACC<- (m[1,1] + m[2,2] + m[3,3])/sum(m)
-#Store the accuracy for this repetition 
+#plotting bill length against flipper length 
+ggplot(penguins_selected_variables, aes(x = bill_length_mm, y = flipper_length_mm, color = species)) +
+  geom_point() +
+  labs(x = "Bill length (mm)", y = "Flipper length (mm)") +
+  ggtitle("Scatter Bill length vs Flipper length")
 
 ```
+Bill length and flipper length are more important in predicting which species an individual belongs to because when these variables are plotted against eachother, there are the clearest boundaries in space between all three species. 
+
+Can decide which to keep later! 
+
+
+
+Question 4: 
+
+  
+
+
 
 ```{r}
 # Load necessary libraries
@@ -714,81 +687,334 @@ library(palmerpenguins)
 library(randomForest)
 library(ggplot2)
 
-# Function to generate random datasets with three predictors
-data.generator.3 <- function(N) {
-  # Generate random predictors
-  x1 <- rnorm(N, 0, 1)
-  x2 <- rnorm(N, 0, 1)
-  x3 <- rnorm(N, 0, 1)
   
-  # Create data frame with predictors
-  data <- data.frame(x1, x2, x3)
+
+```
+
+
+```{r}
+#Defining the values of n in each random array 
+n_values <- c(0, 1, 5, 10, 20, 50, 75, 100) 
+
+#Initialise a list to store the results 
+accuracy_results <- list()
+
+#Iterate what we want to do for each value of n
+for (n in n_values) {
+  #Initialise a vector to store the accuracies for this value of n 
+  accuracies <- numeric()
   
-  return(data)
-}
+  N <- nrow(penguins_selected_variables)  # Assuming 'penguins' is your dataset
 
-# Load the cleaned penguins dataset
-data("penguins_selected_variables")
-# Assuming 'penguins' is the cleaned dataset
-
-# Define the sample sizes
-sample_sizes <- c(0, 1, 5, 10, 20, 50, 75, 100)
-
-# Define the number of repetitions
-M <- 50
-
-# Set the seed for reproducibility
-set.seed(123)
-
-# Initialize a vector to store mean accuracies for each sample size
-mean_accuracies <- numeric(length(sample_sizes))
-
-# Loop through each sample size
-for (n_idx in seq_along(sample_sizes)) {
-  n <- sample_sizes[n_idx]
-  
-  # Initialize a vector to store accuracies for this sample size
-  accuracies <- numeric(M)
-  
-  # Repeat the experiment M times
+  #repeat the experiment M times
+  M <- 50 
   for (i in 1:M) {
-    # Generate random noise arrays
-    random_noise <- data.generator.3(nrow(penguins_selected_variables))
+    #generate these 9 noisy arrays
+    x1 <- rnorm(N, 0, 1)
+    x2 <- rnorm(N, 0, 1)
+    x3 <- rnorm(N, 0, 1)
+    x4 <- rnorm(N, 0, 1)
+    x5 <- rnorm(N, 0, 1)
+    x6 <- rnorm(N, 0, 1)
+    x7 <- rnorm(N, 0, 1)
+    x8 <- rnorm(N, 0, 1)
+    x9 <- rnorm(N, 0, 1)
     
-    # Append noise columns to the original dataset
-    augmented_dataset <- cbind(penguins_selected_variables, random_noise)
-    
-    # Run random forest algorithm on the augmented dataset
-    rf_model <- randomForest(species ~ ., data = augmented_dataset)
-    
-    # Get confusion matrix
-    #extract confusion matrix
-m<- rf_model$confusion
-#remove the last column which is the error.class.  ?
-m<- m[,-ncol(m)]
-m
-    
+    # Appending this to my dataset: 
+    # Assuming 'penguins_selected_variables' is your dataset
+    augmented_dataset <- penguins_selected_variables  # Create a new dataset
+
+    # Add the noisy variables to the new dataset
+    augmented_dataset <- cbind(penguins_selected_variables, x1, x2, x3, x4, x5, x6, x7, x8, x9)
+
+    # running a random forest on the augmented dataset
+    ##make sure that the variable we are predicting is a factor
+    augmented_dataset$species <- factor(augmented_dataset$species)
+    rf <- randomForest(species ~ ., data = augmented_dataset, ntree = 2000)
+
+    # calculating the accuracy of the random forest 
+    m <- rf$confusion
+    # remove the last column which is the error.class
+    m <- m[,-ncol(m)]
+      
     # Calculate accuracy
-    ACC<- (m[1,1] + m[2,2] + m[3,3])/sum(m)
-    
+    ACC <- (m[1,1] + m[2,2] + m[3,3])/sum(m)
+      
     # Store the accuracy for this repetition
-    accuracies[i] <- ACC
+    accuracies <- c(accuracies, ACC)
   }
-  
-  # Calculate and store the mean accuracy for this sample size
-  mean_accuracies[n_idx] <- mean(accuracies)
+
+  # Calculate the mean accuracy for this value of n
+  mean_accuracy <- mean(accuracies)
+
+  # Store the mean accuracy for this value of n in the accuracy_results list 
+  accuracy_results[[as.character(n)]] <- mean_accuracy
 }
 
-# Create a data frame for plotting
-plot_data <- data.frame(N = sample_sizes, Mean_Accuracy = mean_accuracies)
+# Convert accuracy_results to a data frame
+accuracy_df <- data.frame(
+  n = as.numeric(names(accuracy_results)),
+  mean_accuracy = unlist(accuracy_results)
+)
 
+
+
+
+```
+
+Plotting my data: 
+
+```{r}
 # Plot mean accuracy as a function of n
-ggplot(plot_data, aes(x = N, y = Mean_Accuracy)) +
+ggplot(accuracy_df, aes(x = n, y = mean_accuracy)) +
   geom_line() +
   geom_point() +
   labs(x = "n", y = "Mean Accuracy", title = "Mean Accuracy vs. Sample Size (n)")
 
 
+```
+
+```{r}
+# Plot mean accuracy as a function of n
+ggplot(accuracy_df, aes(x = n, y = mean_accuracy)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "n", y = "Mean Accuracy", title = "Mean Accuracy vs. Sample Size (n)") +
+  scale_y_continuous(limits = c(0.9, 1))  # Adjust the limits of the y-axis
+
+
 
 ```
-NEED TO GO OVER ALL OF THE ABOVE, COULD ALL BE WRONG. 
+
+```{r}
+# Define values of n
+n_values <- c(0, 1, 5, 10, 20, 50, 75, 100)
+
+# Initialize a list to store the results
+accuracy_results <- list()
+
+# Iterate over each value of n
+for (n in n_values) {
+  # Initialize a vector to store accuracies for this value of n
+  accuracies <- numeric()
+  
+  # Repeat the experiment M times
+  M <- 50
+  for (i in 1:M) {
+    # Generate noisy variables for this augmented dataset
+    # Add noisy variables to the original dataset
+    
+    # Create the augmented dataset
+    
+    # Train a random forest model on the augmented dataset
+    
+    # Calculate accuracy and store it in accuracies vector
+  }
+  
+  # Calculate mean accuracy for this value of n
+  mean_accuracy <- mean(accuracies)
+  
+  # Store mean accuracy in accuracy_results list
+  accuracy_results[[as.character(n)]] <- mean_accuracy
+}
+
+# Convert accuracy_results to a data frame and plot it
+# ...
+
+
+
+```
+
+Corrected version where it makes multiple augmented data sets
+
+```{r}
+
+# Define values of n
+n_values <- c(0, 1, 5, 10, 20, 50, 75, 100)
+
+# Initialize a list to store the results
+accuracy_results <- list()
+
+# Iterate over each value of n
+for (n in n_values) {
+  # Initialize a vector to store accuracies for this value of n
+  accuracies <- numeric()
+  
+  # Repeat the experiment M times
+  M <- 50
+  for (i in 1:M) {
+    # Generate n noisy arrays
+    noisy_arrays <- lapply(1:n, function(j) rnorm(N, 0, 1))
+    
+    # Create the augmented dataset
+    augmented_dataset <- penguins_selected_variables  # Create a new dataset
+    names(noisy_arrays) <- paste0("x", 1:length(noisy_arrays))
+    augmented_dataset <- cbind(augmented_dataset, noisy_arrays)
+    
+    # Make sure the variable we are predicting is a factor
+    augmented_dataset$species <- factor(augmented_dataset$species)
+    
+    # Train a random forest model on the augmented dataset
+    rf <- randomForest(species ~ ., data = augmented_dataset, ntree = 2000)
+    
+    # Calculate accuracy and store it in accuracies vector
+    m <- rf$confusion
+    m <- m[,-ncol(m)]
+    ACC <- (m[1,1] + m[2,2] + m[3,3])/sum(m)
+    accuracies <- c(accuracies, ACC)
+  }
+  
+  # Calculate mean accuracy for this value of n
+  mean_accuracy <- mean(accuracies)
+  
+  # Store mean accuracy in accuracy_results list
+  accuracy_results[[as.character(n)]] <- mean_accuracy
+}
+
+# Convert accuracy_results to a data frame
+accuracy_df <- data.frame(
+  n = as.numeric(names(accuracy_results)),
+  mean_accuracy = unlist(accuracy_results)
+)
+
+
+```
+
+Plotting this data
+
+```{r}
+
+library(ggplot2)
+
+# Plot mean accuracy as a function of n
+ggplot(accuracy_df, aes(x = n, y = mean_accuracy)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "n", y = "Mean Accuracy", title = "Mean Accuracy vs. Sample Size (n)")
+
+
+```
+
+Question 5: 
+
+Loading the data:
+
+```{r}
+
+covertype_data <- read_csv( "/Users/cissi.user.2/Documents/Computer coding/Random forest assignment/Data/covertype.csv")
+
+head(covertype_data)
+```
+Creating two smaller data sets, data_train and data_test of sizes Ntrain = 1000 and Ntest = 1000 with data points selected at random from the full data set. Data_train and data_test cannot share any data points.
+
+
+
+```{r}
+# Get the total number of rows in covertype_data
+total_rows <- nrow(covertype_data)
+
+# Generate indices for all rows
+all_indices <- 1:total_rows
+
+# Sample indices for data_train
+train_indices <- sample(all_indices, 1000, replace = FALSE)
+
+# Exclude train_indices from the pool of indices
+remaining_indices <- setdiff(all_indices, train_indices)
+
+# Sample indices for Ntest from the remaining indices
+test_indices <- sample(remaining_indices, 1000, replace = FALSE)
+
+# Create data_train and Ntest using the sampled indices
+data_train <- covertype_data[train_indices, ]
+data_test <- covertype_data[test_indices, ]
+
+#Visualising the data
+data_train
+data_test
+
+```
+```{r}
+# Find the columns representing Wilderness_AreaX
+wilderness_cols <- grep("Wilderness_Area", names(data_train))
+
+# Get the column names without the Wilderness_Area prefix
+wilderness_areas <- gsub("Wilderness_Area", "", names(data_train[wilderness_cols]))
+
+# Find the column index where Wilderness_AreaX = 1 for each row
+wilderness_area_index <- apply(data_train[, wilderness_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Wilderness_Area value
+data_train$Wilderness_Area <- wilderness_areas[wilderness_area_index]
+
+# Convert Wilderness_Area to a factor
+data_train$Wilderness_Area <- factor(data_train$Wilderness_Area)
+
+# Remove the original one-hot-encoded Wilderness_AreaX columns
+data_train <- data_train[, -wilderness_cols]
+
+#repeating this for the soil columns 
+
+# Find the columns representing Soil_TypeX
+soil_cols <- grep("Soil_Type", names(data_train))
+
+# Get the column names without the Soil_Type prefix
+soil_types <- gsub("Soil_Type", "", names(data_train[soil_cols]))
+
+# Find the column index where Soil_TypeX = 1 for each row
+soil_type_index <- apply(data_train[, soil_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Soil_Type value
+data_train$Soil_Type <- soil_types[soil_type_index]
+
+# Convert Soil_Type to a factor
+data_train$Soil_Type <- factor(data_train$Soil_Type)
+
+# Remove the original one-hot-encoded Soil_TypeX columns
+data_train <- data_train[, -soil_cols]
+
+head(data_train)
+
+
+```
+
+Running a random forest on data_train with the default parameters: 
+
+
+```{r}
+
+rf <- randomForest(class ~ ., data = data_train)
+rf
+
+
+```
+
+Reporting variable importance: 
+
+```{r}
+imp<- importance(rf) ##extracts a matrix with the importance information
+print(imp)
+
+varImpPlot(rf) ##plots the importance information
+
+```
+
+Extracting the confusion matrix: 
+
+
+```{r}
+str(rf$confusion)
+
+
+```
+
+```{r}
+#extract confusion matrix
+m<- rf$confusion
+#remove the last column which is the error.class.  ?
+m<- m[,-ncol(m)]
+m
+
+
+
+```
