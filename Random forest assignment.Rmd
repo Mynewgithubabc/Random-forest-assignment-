@@ -441,7 +441,6 @@ Run a random forest on this data set, calibrate it by setting appropriate values
 
 ```{r}
 #We need to ensure the species column is a factor variable: 
-
 penguins_selected_variables$species<- factor(penguins_selected_variables$species)
 #Running a random forest on my data set 
 rf <- randomForest(species ~ ., data = penguins_selected_variables)
@@ -537,10 +536,12 @@ TPR
   
 Specificity / true negative 
 
+The number of correctly predicted nos divided by the actual number of negatives 
+
 
 
 ```{r}
-TNR <- (sum(m[,2]) + (sum(m[,3]))) / (sum(m[2,]) + sum(m[3,]))
+TNR <- (m[2, 2] + m[3, 3]) / (sum(m[2, ]) + sum(m[3, ]))
 TNR
 ```
 
@@ -569,7 +570,7 @@ TPR
 Specificity / true negative rate 
 
 ```{r}
-TNR <- ((sum(m[,1]) + sum(m[,3]))) / (sum(m[1,]) + sum(m[3,]))
+TNR <- (((m[1,1]) + (m[3,3]))) / (sum(m[1,]) + sum(m[3,]))
 TNR
 
 ```
@@ -597,7 +598,7 @@ TPR
 Calculating true negative / specificity 
 
 ```{r}
-TNR <- ((sum(m[,1]) + sum(m[,2])) / (sum(m[2,]) + sum(m[1,])))
+TNR <- (((m[1,1]) + (m[2,2])) / (sum(m[2,]) + sum(m[1,])))
 TNR
 
 
@@ -609,7 +610,7 @@ ACC <- (m[3,3]) / sum(m[,3])
 ACC
 ```
 
-Analysis: 
+Analysis: REDO THIS 
 
 Are all species classified equally well? 
 No, true positive, true negative rate and accuracy rates vary between species.
@@ -679,8 +680,6 @@ Question 4:
 
   
 
-
-
 ```{r}
 # Load necessary libraries
 library(palmerpenguins)
@@ -693,10 +692,44 @@ library(ggplot2)
 
 
 ```{r}
+# Define values of n
+n_values <- c(0, 1, 5, 10, 20, 50, 75, 100)
+# Initialize a list to store the results
+accuracy_results <- list()
+# Iterate over each value of n
+for (n in n_values) {  # Initialize a vector to store accuracies for this value of n
+  accuracies <- numeric()    # Repeat the experiment M times
+  M <- 50 
+  for (i in 1:M) {    # Generate n noisy arrays    
+    noisy_arrays <- lapply(1:n, function(j) rnorm(N, 0, 1))        # Create the augmented dataset    
+    augmented_dataset <- penguins_selected_variables  # Create a new dataset    
+    names(noisy_arrays) <- paste0("x", 1:length(noisy_arrays))    
+    augmented_dataset <- cbind(augmented_dataset, noisy_arrays)        
+    # Make sure the variable we are predicting is a factor    
+    augmented_dataset$species <- factor(augmented_dataset$species)        
+    # Train a random forest model on the augmented dataset    
+    rf <- randomForest(species ~ ., data = augmented_dataset, ntree = 2000)        
+    # Calculate accuracy and store it in accuracies vector    
+    m <- rf$confusion    
+    m <- m[,-ncol(m)]    
+    ACC <- (m[1,1] + m[2,2] + m[3,3])/sum(m)    
+    accuracies <- c(accuracies, ACC)  }   
+  # Calculate mean accuracy for this value of n  
+  mean_accuracy <- mean(accuracies)    
+  # Store mean accuracy in accuracy_results list  
+  accuracy_results[[as.character(n)]] <- mean_accuracy}
+# Convert accuracy_results to a data frame
+accuracy_df <- data.frame(  n = as.numeric(names(accuracy_results)),  mean_accuracy = unlist(accuracy_results))
+
+```
+
+
+
+```{r}
 #Defining the values of n in each random array 
 n_values <- c(0, 1, 5, 10, 20, 50, 75, 100) 
 
-#Initialise a list to store the results 
+#Initialise a list to store the results of accuracy for each value of n 
 accuracy_results <- list()
 
 #Iterate what we want to do for each value of n
@@ -704,7 +737,7 @@ for (n in n_values) {
   #Initialise a vector to store the accuracies for this value of n 
   accuracies <- numeric()
   
-  N <- nrow(penguins_selected_variables)  # Assuming 'penguins' is your dataset
+  N <- nrow(penguins_selected_variables)  #assuming 'penguins_selected_variables' is your dataset. We are making a
 
   #repeat the experiment M times
   M <- 50 
@@ -752,9 +785,10 @@ for (n in n_values) {
 }
 
 # Convert accuracy_results to a data frame
+#N values have to be treated as numeric in order to be able to plot the data 
 accuracy_df <- data.frame(
   n = as.numeric(names(accuracy_results)),
-  mean_accuracy = unlist(accuracy_results)
+  mean_accuracy = unlist(accuracy_results) #putting the list into a format that is readable in a data frame 
 )
 
 
@@ -832,26 +866,26 @@ Corrected version where it makes multiple augmented data sets
 # Define values of n
 n_values <- c(0, 1, 5, 10, 20, 50, 75, 100)
 
-# Initialize a list to store the results
+# Initialize a list to store the results for accuracy calculations for each data frame 
 accuracy_results <- list()
 
-# Iterate over each value of n
+#iterate over each value of n
 for (n in n_values) {
-  # Initialize a vector to store accuracies for this value of n
+  #initialize a vector to store accuracies for this value of n
   accuracies <- numeric()
   
-  # Repeat the experiment M times
+  #Repeat the experiment M times where M is 50 
   M <- 50
-  for (i in 1:M) {
-    # Generate n noisy arrays
-    noisy_arrays <- lapply(1:n, function(j) rnorm(N, 0, 1))
+  for (i in 1:M) { #for every experiment out of M experiments 
+    # Generate n noisy arrays where n is n_values, drawn randomly from the normal distribution
+    noisy_arrays <- lapply(1:n, function(j) rnorm(N, 0, 1)) #where N is the length of the penguins_selected_variables_dataset
     
-    # Create the augmented dataset
-    augmented_dataset <- penguins_selected_variables  # Create a new dataset
-    names(noisy_arrays) <- paste0("x", 1:length(noisy_arrays))
-    augmented_dataset <- cbind(augmented_dataset, noisy_arrays)
+    #Augmenting our new noisy arrays to the penguins_selected_variables dataset creating multiple new datasets 
+    augmented_dataset <- penguins_selected_variables  # Create a new dataset that is identical to my previous dataset 
+    names(noisy_arrays) <- paste0("x", 1:length(noisy_arrays)) #naming the columns from 1 to the number of noisy arrays thatI have
+    augmented_dataset <- cbind(augmented_dataset, noisy_arrays) #binding the noisy arrays I have made to my new augmented dataset 
     
-    # Make sure the variable we are predicting is a factor
+    # Make sure the variable we are predicting is a factor so the random forest works 
     augmented_dataset$species <- factor(augmented_dataset$species)
     
     # Train a random forest model on the augmented dataset
@@ -864,12 +898,15 @@ for (n in n_values) {
     accuracies <- c(accuracies, ACC)
   }
   
+  #This for loop will be completed 50 times for each value of n in n_values 
+  
   # Calculate mean accuracy for this value of n
   mean_accuracy <- mean(accuracies)
   
   # Store mean accuracy in accuracy_results list
-  accuracy_results[[as.character(n)]] <- mean_accuracy
+  accuracy_results[[as.character(n)]] <- mean_accuracy #because a list can only store character values 
 }
+
 
 # Convert accuracy_results to a data frame
 accuracy_df <- data.frame(
@@ -910,30 +947,134 @@ Creating two smaller data sets, data_train and data_test of sizes Ntrain = 1000 
 
 
 ```{r}
-# Get the total number of rows in covertype_data
-total_rows <- nrow(covertype_data)
+# Set the sizes for training and testing sets
+Ntrain <- 10000
+Ntest <- 1000
 
 # Generate indices for all rows
+total_rows <- nrow(covertype_data)
 all_indices <- 1:total_rows
 
 # Sample indices for data_train
-train_indices <- sample(all_indices, 1000, replace = FALSE)
+train_indices <- sample(all_indices, Ntrain, replace = FALSE)
 
 # Exclude train_indices from the pool of indices
 remaining_indices <- setdiff(all_indices, train_indices)
 
-# Sample indices for Ntest from the remaining indices
-test_indices <- sample(remaining_indices, 1000, replace = FALSE)
+# Sample indices for data_test from the remaining indices
+test_indices <- sample(remaining_indices, Ntest, replace = FALSE)
 
-# Create data_train and Ntest using the sampled indices
+# Create data_train and data_test using the sampled indices
 data_train <- covertype_data[train_indices, ]
 data_test <- covertype_data[test_indices, ]
 
-#Visualising the data
+# Visualize the data
 data_train
 data_test
 
 ```
+Another way of generating data_train and data_test ensuring factor levels are consistent between them 
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Define sizes
+Ntrain <- 10000
+Ntest <- 1000
+
+# Sample indices for data_train
+train_indices <- sample(nrow(covertype_data), Ntrain, replace = FALSE)
+
+# Sample indices for data_test
+all_indices <- 1:nrow(covertype_data)
+test_indices <- sample(setdiff(all_indices, train_indices), Ntest, replace = FALSE)
+
+# Create data_train and data_test
+data_train <- covertype_data[train_indices, ]
+data_test <- covertype_data[test_indices, ]
+
+# Check and adjust factor levels if needed, with explicit adjustment for Soil_Type
+for (var in names(data_test)) {
+  if (is.factor(data_test[[var]])) {
+    levels_train <- levels(data_train[[var]])
+    levels_test <- levels(data_test[[var]])
+    if (!identical(levels_train, levels_test)) {
+      if (var == "Soil_Type") {
+        # Adjust factor levels for Soil_Type
+        common_levels <- intersect(levels_train, levels_test)
+        data_test[[var]] <- factor(data_test[[var]], levels = common_levels)
+      } else {
+        # Adjust factor levels for other variables
+        warning(paste("Factor levels for", var, "in data_test differ from data_train. Adjusting..."))
+        data_test[[var]] <- factor(data_test[[var]], levels = levels_train)
+      }
+    }
+  }
+}
+
+# Check and ensure consistency in column names and variable types
+# Adjust column names if needed
+if (!identical(names(data_train), names(data_test))) {
+  names(data_test) <- names(data_train)
+}
+
+# Ensure consistency in variable types
+for (var in names(data_test)) {
+  if (class(data_test[[var]]) != class(data_train[[var]])) {
+    data_test[[var]] <- as.data.frame(data_test[[var]], col.names = class(data_train[[var]]))
+  }
+}
+
+# Check and ensure consistency in factor levels again
+if (!identical(levels(data_train), levels(data_test))) {
+  warning("Factor levels in data_train and data_test are not fully consistent.")
+}
+
+data_train
+data_test
+
+
+```
+```{r}
+# Generate indices for all rows
+total_rows <- nrow(covertype_data)
+all_indices <- 1:total_rows
+
+# Sample indices for data_train
+train_indices <- sample(all_indices, Ntrain, replace = FALSE)
+
+# Exclude train_indices from the pool of indices
+remaining_indices <- setdiff(all_indices, train_indices)
+
+# Sample indices for data_test from the remaining indices
+test_indices <- sample(remaining_indices, Ntest, replace = FALSE)
+
+# Create data_train and data_test using the sampled indices
+data_train <- covertype_data[train_indices, ]
+data_test <- covertype_data[test_indices, ]
+
+# Adjust data types in data_test to match data_train
+for (var in names(data_train)) {
+  if (class(data_train[[var]]) != class(data_test[[var]])) {
+    data_test[[var]] <- as(data_test[[var]], class(data_train[[var]]))
+  }
+}
+
+# Check data types
+identical_dtypes <- identical(sapply(data_train, class), sapply(data_test, class))
+if (!identical_dtypes) {
+  stop("Data types in data_train and data_test do not match.")
+}
+
+data_train
+data_test
+
+
+
+```
+
+
 ```{r}
 # Find the columns representing Wilderness_AreaX
 wilderness_cols <- grep("Wilderness_Area", names(data_train))
@@ -982,7 +1123,9 @@ Running a random forest on data_train with the default parameters:
 
 
 ```{r}
-
+#Converting class to a factor so the random forest can work 
+data_train$class <- factor(data_train$class)
+#Running the random forest model on my data_train 
 rf <- randomForest(class ~ ., data = data_train)
 rf
 
@@ -1014,6 +1157,349 @@ m<- rf$confusion
 #remove the last column which is the error.class.  ?
 m<- m[,-ncol(m)]
 m
+
+
+
+```
+Class 1: 
+
+Accuracy: 
+
+Accuracy 
+ = number of correct predictions for that species / total number of predictions for that species 
+ 
+
+```{r}
+ACC <- (m[1,1]) / sum(m[,1])
+ACC
+
+```
+
+
+Sensitivity / True positive 
+
+The number of correctly predicted positives divided by number of actual positives 
+
+```{r}
+TPR <- m[1, 1] / sum(m[1, ])
+TPR
+
+```
+
+Specificity / True negative rate
+
+Have calculated this wrong above! 
+
+The __true negative rate__ (TNR, as introduced in the lecture slides) is the number of correctly predicted entires for __no__ divided by the sum of all entries that are actually __no__.
+
+
+```{r}
+
+
+TNR <- ((m[2,2]) + (m[3,3]) + (m[4,4]) + (m[5,5]) + (m[6,6]) + (m[7,7])) / ((sum(m[2,]) + sum(m[3,]) + sum(m[4,]) + sum(m[5,]) + sum(m[6,]) + sum(m[7,])))
+TNR
+
+
+
+```
+
+
+Trying to get a loop to do this for all the classes in R: 
+
+```{r}
+# Assuming m is your confusion matrix
+m  
+
+# Number of classes
+num_classes <- nrow(m)
+
+# Initialize vectors to store results
+accuracy <- numeric(num_classes)
+sensitivity <- numeric(num_classes)
+specificity <- numeric(num_classes)
+
+# Calculate metrics for each class
+for (i in 1:num_classes) {
+  # Accuracy
+  accuracy[i] <- m[i, i] / sum(m[, i])
+  
+  # Sensitivity / True positive rate
+  sensitivity[i] <- m[i, i] / sum(m[i, ])
+  
+  # True negative rate / Specificity
+  true_negatives <- sum(diag(m)) - m[i, i]  # Subtract true positives from total true positives and true negatives
+  total_negatives <- sum(m) - sum(m[i, ])   # Subtract true positives and false positives from total
+  specificity[i] <- true_negatives / total_negatives
+}
+
+# Print or return the results
+print(accuracy)
+print(sensitivity)
+print(specificity)
+
+# Create a data frame with class and metrics
+results_df <- data.frame(
+  class = 1:num_classes,
+  accuracy = accuracy,
+  sensitivity = sensitivity,
+  specificity = specificity
+)
+
+# Print or return the data frame
+print(results_df)
+
+
+
+```
+
+Analyse this part of the results later 
+
+Final part of question 5: 
+
+
+
+Making the same observations I did on data_test as I did on data_train 
+
+```{r}
+# Find the columns representing Wilderness_AreaX
+wilderness_cols <- grep("Wilderness_Area", names(data_test))
+
+# Get the column names without the Wilderness_Area prefix
+wilderness_areas <- gsub("Wilderness_Area", "", names(data_test[wilderness_cols]))
+
+# Find the column index where Wilderness_AreaX = 1 for each row
+wilderness_area_index <- apply(data_test[, wilderness_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Wilderness_Area value
+data_test$Wilderness_Area <- wilderness_areas[wilderness_area_index]
+
+# Convert Wilderness_Area to a factor
+data_test$Wilderness_Area <- factor(data_test$Wilderness_Area)
+
+# Remove the original one-hot-encoded Wilderness_AreaX columns
+data_test <- data_test[, -wilderness_cols]
+
+#repeating this for the soil columns 
+
+# Find the columns representing Soil_TypeX
+soil_cols <- grep("Soil_Type", names(data_test))
+
+# Get the column names without the Soil_Type prefix
+soil_types <- gsub("Soil_Type", "", names(data_test[soil_cols]))
+
+# Find the column index where Soil_TypeX = 1 for each row
+soil_type_index <- apply(data_test[, soil_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Soil_Type value
+data_test$Soil_Type <- soil_types[soil_type_index]
+
+# Convert Soil_Type to a factor
+data_test$Soil_Type <- factor(data_test$Soil_Type)
+
+# Remove the original one-hot-encoded Soil_TypeX columns
+data_test <- data_test[, -soil_cols]
+
+head(data_test)
+
+
+
+```
+
+
+
+
+
+pred_test <- predict(model, newdata = data_test, type= "class")
+
+
+```{r}
+
+# Check column names
+identical_colnames <- identical(colnames(data_train), colnames(data_test))
+if (!identical_colnames) {
+  stop("Column names in data_train and data_test do not match.")
+}
+
+# Check data types
+identical_dtypes <- identical(sapply(data_train, class), sapply(data_test, class))
+if (!identical_dtypes) {
+  stop("Data types in data_train and data_test do not match.")
+}
+
+# Check and adjust factor levels if needed
+for (var in names(data_test)) {
+  if (is.factor(data_test[[var]])) {
+    levels_train <- levels(data_train[[var]])
+    levels_test <- levels(data_test[[var]])
+    if (!identical(levels_train, levels_test)) {
+      warning(paste("Factor levels for", var, "in data_test differ from data_train. Adjusting..."))
+      data_test[[var]] <- factor(data_test[[var]], levels = levels_train)
+    }
+  }
+}
+
+# Now, make predictions using the random forest model
+predictions <- predict(rf, newdata = data_test, type = "class")
+print(predictions)
+
+
+
+```
+
+```{r}
+#adjusting factor levels in data_train and data_test 
+# Check and adjust factor levels if needed, with explicit adjustment for Soil_Type
+for (var in names(data_test)) {
+  if (is.factor(data_test[[var]])) {
+    levels_train <- levels(data_train[[var]])
+    levels_test <- levels(data_test[[var]])
+    if (!identical(levels_train, levels_test)) {
+      if (var == "Soil_Type") {
+        # Adjust factor levels for Soil_Type
+        common_levels <- intersect(levels_train, levels_test)
+        data_test[[var]] <- factor(data_test[[var]], levels = common_levels)
+      } else {
+        # Adjust factor levels for other variables
+        warning(paste("Factor levels for", var, "in data_test differ from data_train. Adjusting..."))
+        data_test[[var]] <- factor(data_test[[var]], levels = levels_train)
+      }
+    }
+  }
+}
+
+
+```
+
+Running the random forest prediction: 
+
+```{r}
+#Converting class to a factor so the random forest can work 
+data_test$class <- factor(data_test$class)
+
+#making predictions on the test data using the random forest I just made 
+predictions <- predict(rf, newdata = data_test, type = "class")
+#printing the predictions 
+print(predictions)
+
+```
+
+
+
+Go back and look at how I made my data_train and data_test, this might help.
+
+```{r}
+# Identify categorical variables in your datasets (assuming `data_train` and `data_test` are data frames)
+categorical_vars <- sapply(data_train, is.factor)
+
+# Retrieve and compare factor levels for each categorical variable
+for (var in names(data_train)[categorical_vars]) {
+  cat("Variable:", var, "\n")
+  cat("Levels in data_train:", levels(data_train[[var]]), "\n")
+  cat("Levels in data_test:", levels(data_test[[var]]), "\n")
+  cat("\n")
+}
+
+
+```
+
+There is an issue here: 
+
+There is a level 25 in data_test that is not found in data_trait in soil type 
+
+There is a level 28 in data_test that is not found in data_train 
+
+There si a level 3 in data_Test not found in data_train 
+
+There is a level 37 in data_Test not found in data_train 
+
+There is a level 5 in data_test not found in data train 
+
+
+New code to generate data_train and data_test that shouldn't cause these issues 
+
+```{r}
+# Identify categorical variables in your dataset (assuming `covertype_data` is a data frame)
+categorical_vars <- sapply(covertype_data, is.factor)
+
+# Get unique factor levels for each categorical variable
+unique_levels <- lapply(covertype_data[, categorical_vars], levels)
+unique_levels_combined <- unique(unlist(unique_levels))
+
+# Split the unique levels into training and testing sets
+set.seed(123)  # Set seed for reproducibility
+train_levels <- sample(unique_levels_combined, floor(0.8 * length(unique_levels_combined)))
+test_levels <- setdiff(unique_levels_combined, train_levels)
+
+# Split the dataset into training and testing sets based on the selected levels
+data_train <- covertype_data[sapply(covertype_data[, categorical_vars], function(x) any(x %in% train_levels)), ]
+data_test <- covertype_data[sapply(covertype_data[, categorical_vars], function(x) any(x %in% test_levels)), ]
+
+# Ensure consistent factor levels in data_train and data_test
+for (var in names(data_train)[categorical_vars]) {
+  levels(data_train[[var]]) <- union(levels(data_train[[var]]), levels(data_test[[var]]))
+  levels(data_test[[var]]) <- levels(data_train[[var]])
+}
+
+```
+
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Sample indexes for training and testing sets
+train_indexes <- sample(nrow(covertype_data), 10000)
+test_indexes <- sample(setdiff(1:nrow(covertype_data), train_indexes), 1000)
+
+# Create training and testing datasets
+data_train <- covertype_data[train_indexes, ]
+data_test <- covertype_data[test_indexes, ]
+
+# Ensure consistent factor levels in both datasets
+for (var in names(data_train)) {
+  if (is.factor(data_train[[var]])) {
+    levels_train <- levels(data_train[[var]])
+    levels_test <- levels(data_test[[var]])
+    levels_combined <- union(levels_train, levels_test)
+    data_train[[var]] <- factor(data_train[[var]], levels = levels_combined)
+    data_test[[var]] <- factor(data_test[[var]], levels = levels_combined)
+  }
+}
+
+
+```
+
+```{r}
+# Set the sizes for training and testing sets
+Ntrain <- 10000
+Ntest <- 1000
+
+# Generate indices for all rows
+total_rows <- nrow(covertype_data)
+all_indices <- 1:total_rows
+
+# Sample indices for data_train
+train_indices <- sample(all_indices, Ntrain, replace = FALSE)
+
+# Exclude train_indices from the pool of indices
+remaining_indices <- setdiff(all_indices, train_indices)
+
+# Sample indices for data_test from the remaining indices
+test_indices <- sample(remaining_indices, Ntest, replace = FALSE)
+
+# Create data_train and data_test using the sampled indices
+data_train <- covertype_data[train_indices, ]
+data_test <- covertype_data[test_indices, ]
+
+# Visualize the data
+data_train
+data_test
+
+
+```
+
+
+
+Use this to regenerate data_train and data_test and run all the code I have above on it to do question 5.
 
 
 
