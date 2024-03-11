@@ -1,0 +1,293 @@
+Making the data_train and data_test 
+
+
+```{r}
+# Set the sizes for training and testing sets
+Ntrain <- 10000
+Ntest <- 1000
+
+
+# Generate indices for all rows
+total_rows <- nrow(covertype_data)
+all_indices <- 1:total_rows
+
+# Sample indices for data_train
+train_indices <- sample(all_indices, Ntrain, replace = FALSE)
+
+# Exclude train_indices from the pool of indices
+remaining_indices <- setdiff(all_indices, train_indices)
+
+# Sample indices for data_test from the remaining indices
+test_indices <- sample(remaining_indices, Ntest, replace = FALSE)
+
+# Create data_train and data_test using the sampled indices
+data_train <- covertype_data[train_indices, ]
+data_test <- covertype_data[test_indices, ]
+
+```
+
+```{r}
+
+# Adjust data types in data_test to match data_train
+for (var in names(data_train)) {
+  if (class(data_train[[var]]) != class(data_test[[var]])) {
+    data_test[[var]] <- as(data_test[[var]], class(data_train[[var]]))
+  }
+}
+
+# Check data types
+identical_dtypes <- identical(sapply(data_train, class), sapply(data_test, class))
+if (!identical_dtypes) {
+  stop("Data types in data_train and data_test do not match.")
+}
+
+data_train
+data_test
+
+
+```
+
+Sorting out the one hot coding in data_train 
+
+```{r}
+
+# Find the columns representing Wilderness_AreaX
+wilderness_cols <- grep("Wilderness_Area", names(data_train))
+
+# Get the column names without the Wilderness_Area prefix
+wilderness_areas <- gsub("Wilderness_Area", "", names(data_train[wilderness_cols]))
+
+# Find the column index where Wilderness_AreaX = 1 for each row
+wilderness_area_index <- apply(data_train[, wilderness_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Wilderness_Area value
+data_train$Wilderness_Area <- wilderness_areas[wilderness_area_index]
+
+# Convert Wilderness_Area to a factor
+data_train$Wilderness_Area <- factor(data_train$Wilderness_Area)
+
+# Remove the original one-hot-encoded Wilderness_AreaX columns
+data_train <- data_train[, -wilderness_cols]
+
+#repeating this for the soil columns 
+
+# Find the columns representing Soil_TypeX
+soil_cols <- grep("Soil_Type", names(data_train))
+
+# Get the column names without the Soil_Type prefix
+soil_types <- gsub("Soil_Type", "", names(data_train[soil_cols]))
+
+# Find the column index where Soil_TypeX = 1 for each row
+soil_type_index <- apply(data_train[, soil_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Soil_Type value
+data_train$Soil_Type <- soil_types[soil_type_index]
+
+# Convert Soil_Type to a factor
+data_train$Soil_Type <- factor(data_train$Soil_Type)
+
+# Remove the original one-hot-encoded Soil_TypeX columns
+data_train <- data_train[, -soil_cols]
+
+head(data_train)
+
+
+```
+
+
+Running a random forest on data_train with the default parameters: 
+
+
+```{r}
+#Converting class to a factor so the random forest can work 
+data_train$class <- factor(data_train$class)
+#Running the random forest model on my data_train 
+rf <- randomForest(class ~ ., data = data_train)
+rf
+
+
+```
+
+Reporting variable importance: 
+
+```{r}
+imp<- importance(rf) ##extracts a matrix with the importance information
+print(imp)
+
+varImpPlot(rf) ##plots the importance information
+
+```
+
+Extracting the confusion matrix: 
+
+
+```{r}
+str(rf$confusion)
+
+
+```
+
+```{r}
+#extract confusion matrix
+m<- rf$confusion
+#remove the last column which is the error.class.  ?
+m<- m[,-ncol(m)]
+m
+
+
+
+```
+```{r}
+# Assuming m is your confusion matrix
+m  
+
+# Number of classes
+num_classes <- nrow(m)
+
+# Initialize vectors to store results
+accuracy <- numeric(num_classes)
+sensitivity <- numeric(num_classes)
+specificity <- numeric(num_classes)
+
+# Calculate metrics for each class
+for (i in 1:num_classes) {
+  # Accuracy
+  accuracy[i] <- m[i, i] / sum(m[, i])
+  
+  # Sensitivity / True positive rate
+  sensitivity[i] <- m[i, i] / sum(m[i, ])
+  
+  # True negative rate / Specificity
+  true_negatives <- sum(diag(m)) - m[i, i]  # Subtract true positives from total true positives and true negatives
+  total_negatives <- sum(m) - sum(m[i, ])   # Subtract true positives and false positives from total
+  specificity[i] <- true_negatives / total_negatives
+}
+
+# Print or return the results
+print(accuracy)
+print(sensitivity)
+print(specificity)
+
+# Create a data frame with class and metrics
+results_df <- data.frame(
+  class = 1:num_classes,
+  accuracy = accuracy,
+  sensitivity = sensitivity,
+  specificity = specificity
+)
+
+# Print or return the data frame
+print(results_df)
+
+```
+
+
+
+Sorting out the one hot coding in data_test so data_train and data_test are the same 
+
+```{r}
+# Find the columns representing Wilderness_AreaX
+wilderness_cols <- grep("Wilderness_Area", names(data_test))
+
+# Get the column names without the Wilderness_Area prefix
+wilderness_areas <- gsub("Wilderness_Area", "", names(data_test[wilderness_cols]))
+
+# Find the column index where Wilderness_AreaX = 1 for each row
+wilderness_area_index <- apply(data_test[, wilderness_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Wilderness_Area value
+data_test$Wilderness_Area <- wilderness_areas[wilderness_area_index]
+
+# Convert Wilderness_Area to a factor
+data_test$Wilderness_Area <- factor(data_test$Wilderness_Area)
+
+# Remove the original one-hot-encoded Wilderness_AreaX columns
+data_test <- data_test[, -wilderness_cols]
+
+#repeating this for the soil columns 
+
+# Find the columns representing Soil_TypeX
+soil_cols <- grep("Soil_Type", names(data_test))
+
+# Get the column names without the Soil_Type prefix
+soil_types <- gsub("Soil_Type", "", names(data_test[soil_cols]))
+
+# Find the column index where Soil_TypeX = 1 for each row
+soil_type_index <- apply(data_test[, soil_cols], 1, function(x) which(x == 1))
+
+# Extract the corresponding Soil_Type value
+data_test$Soil_Type <- soil_types[soil_type_index]
+
+# Convert Soil_Type to a factor
+data_test$Soil_Type <- factor(data_test$Soil_Type)
+
+# Remove the original one-hot-encoded Soil_TypeX columns
+data_test <- data_test[, -soil_cols]
+
+head(data_test)
+
+
+```
+
+```{r}
+# Check column names
+identical_colnames <- identical(colnames(data_train), colnames(data_test))
+if (!identical_colnames) {
+  stop("Column names in data_train and data_test do not match.")
+}
+
+# Check and adjust factor levels if needed
+for (var in names(data_test)) {
+  if (is.factor(data_test[[var]])) {
+    levels_train <- levels(data_train[[var]])
+    levels_test <- levels(data_test[[var]])
+    if (!identical(levels_train, levels_test)) {
+      warning(paste("Factor levels for", var, "in data_test differ from data_train. Adjusting..."))
+      data_test[[var]] <- factor(data_test[[var]], levels = levels_train)
+    }
+  }
+}
+
+```
+
+
+Running the random forest prediction: 
+
+```{r}
+#Converting class to a factor so the random forest can work 
+data_test$class <- factor(data_test$class)
+
+#making predictions on the test data using the random forest I just made 
+predictions <- predict(rf, newdata = data_test, type = "class")
+#printing the predictions 
+print(predictions)
+
+```
+
+Extracting the confusion matrix from this data
+
+```{r}
+install.packages("caret")
+library(caret)
+predictions_info <- confusionMatrix(table(predictions, data_test$class)) # The prediction to compute the confusion matrix and see the accuracy score
+predictions_info
+
+# Extract the confusion matrix table
+m <- predictions_info$table
+
+# Print the confusion matrix table
+print(m)
+
+
+#calculating the number of correctly predicted points from this 
+
+correctly_predicted_points <- (m[1,1]) + (m[2,2]) + (m[3,3]) + (m[4,4]) + (m[5,5]) + (m[6,6]) + (m[7,7])
+correctly_predicted_points 
+
+#There are 812 correctly predicted points. 
+
+
+
+
+
+```
